@@ -1,7 +1,8 @@
-import { View, TextInput, TouchableOpacity, Text } from "react-native";
+// components/ChatInput.tsx
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useRef, useState } from "react";
 import { Audio } from "expo-av";
+import { useEffect, useRef, useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 type Props = {
   onSendText: (text: string) => void;
@@ -37,7 +38,7 @@ export default function ChatInput({ onSendText, onSendAudio }: Props) {
     };
   }, [isRecording]);
 
-  /* ================= START RECORD ================= */
+  /* ================= START RECORDING ================= */
   async function startRecording() {
     try {
       const permission = await Audio.requestPermissionsAsync();
@@ -60,7 +61,7 @@ export default function ChatInput({ onSendText, onSendAudio }: Props) {
     }
   }
 
-  /* ================= STOP RECORD ================= */
+  /* ================= STOP RECORDING ================= */
   async function stopRecording() {
     if (!recording) return;
 
@@ -106,7 +107,8 @@ export default function ChatInput({ onSendText, onSendAudio }: Props) {
   const isTyping = text.trim().length > 0;
 
   return (
-    <View className="px-4 py-3 bg-[#FFF5E9]">
+    // FIX: Ensures the container is flush at the bottom
+    <View className="px-4 py-4 bg-[#FFF5E9]"> 
       <View className="flex-row items-center bg-white rounded-full px-4">
         {/* INPUT OR TIMER */}
         {isRecording ? (

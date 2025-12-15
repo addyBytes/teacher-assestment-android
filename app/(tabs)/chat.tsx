@@ -1,13 +1,15 @@
+// app/(tabs)/chat.tsx
+import { useRef, useState } from "react";
 import {
   FlatList,
-  SafeAreaView,
   KeyboardAvoidingView,
   Platform,
+  SafeAreaView,
+  View,
 } from "react-native";
-import { useRef, useState } from "react";
 
-import ChatBubble from "../../components/ChatBubble";
 import AudioBubble from "../../components/AudioBubble";
+import ChatBubble from "../../components/ChatBubble";
 import ChatInput from "../../components/ChatInput";
 import ChipRow from "../../components/ChipRow";
 
@@ -28,9 +30,6 @@ type Message =
       uri: string;
     };
 
-/* =======================
-   Initial Messages
-======================= */
 const initialMessages: Message[] = [
   {
     id: "1",
@@ -52,71 +51,75 @@ const initialMessages: Message[] = [
   },
 ];
 
-/* =======================
-   Chat Screen
-======================= */
 export default function ChatScreen() {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [showChips, setShowChips] = useState(true);
   const listRef = useRef<FlatList>(null);
 
-  /* ---- send text ---- */
   function sendText(text: string) {
     setMessages((prev) => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        type: "text",
-        side: "right",
-        text,
-      },
+      { id: Date.now().toString(), type: "text", side: "right", text },
     ]);
   }
 
-  /* ---- send audio ---- */
-  function sendAudio(uri: string) {
+  function sendAudio(uri: string, duration: number) {
     setMessages((prev) => [
       ...prev,
-      {
-        id: Date.now().toString(),
-        type: "audio",
-        side: "right",
-        uri,
-      },
+      { id: Date.now().toString(), type: "audio", side: "right", uri },
     ]);
+  }
+
+  function sendChipMessage(text: string) {
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now().toString(), type: "chip", side: "right", text },
+    ]);
+    setShowChips(false);
   }
 
   return (
     <SafeAreaView className="flex-1 bg-[#FFF5E9]">
       <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
       >
+        {/* CHAT LIST */}
         <FlatList
           ref={listRef}
           data={messages}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          onContentSizeChange={() =>
-            listRef.current?.scrollToEnd({ animated: true })
-          }
-          renderItem={({ item }) => {
-            if (item.type === "audio") {
-              return <AudioBubble uri={item.uri} />;
-            }
-
-            return (
+          renderItem={({ item }) =>
+            item.type === "audio" ? (
+              <AudioBubble uri={item.uri} />
+            ) : (
               <ChatBubble
                 side={item.side}
                 text={item.text}
                 isChip={item.type === "chip"}
               />
-            );
+            )
+          }
+          className="flex-1"
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 80,
+            paddingBottom: 5,
           }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          onContentSizeChange={() =>
+            listRef.current?.scrollToEnd({ animated: true })
+          }
         />
 
-        <ChipRow />
-        <ChatInput onSendText={sendText} onSendAudio={sendAudio} />
+        {/* BOTTOM SECTION (MOVES WITH KEYBOARD) */}
+        <View className="mt-40">
+          {showChips && <ChipRow onChipPress={sendChipMessage} />}
+          <ChatInput onSendText={sendText} onSendAudio={sendAudio} />
+        </View>
+      <View className="mt-500"></View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
